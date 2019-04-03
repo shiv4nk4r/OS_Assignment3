@@ -18,6 +18,13 @@
 void
 swap_page_from_pte(pte_t *pte)
 {
+	//blk = balloc_page
+	//va = pte_to_vaddr
+	//write_page_to_disk  dev=ROOTDEV, va, blk
+	//mark pte not present
+	//store blk in higher 20 bits
+	//use one bit in lower 12 bits to mark pte as swapped
+	//kfree (va)
 }
 
 /* Select a victim and swap the contents to the disk.
@@ -37,6 +44,11 @@ swap_page(pde_t *pgdir)
 void
 map_address(pde_t *pgdir, uint addr)
 {
+	// blk = getswappedblk
+	// allocuvm
+	// switchuvm
+	// if blk was not -1, read_page_from_disk
+	// bfree_page
 	panic("map_address is not implemented");
 }
 

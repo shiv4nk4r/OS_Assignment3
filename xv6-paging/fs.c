@@ -85,6 +85,7 @@ balloc(uint dev)
 uint
 balloc_page(uint dev)
 {
+	// if you use log_write you should use begin_op and end_op
 	return -1;
 }
 

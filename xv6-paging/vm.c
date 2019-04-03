@@ -236,6 +236,8 @@ allocuvm(pde_t *pgdir, uint oldsz, uint newsz)
   for(; a < newsz; a += PGSIZE){
     mem = kalloc();
     if(mem == 0){
+		// select_a_victim
+		// swap_page_from_pte
       //cprintf("allocuvm out of memory\n");
       deallocuvm(pgdir, newsz, oldsz);
       return 0;
@@ -307,6 +309,7 @@ freevm(pde_t *pgdir)
 pte_t*
 select_a_victim(pde_t *pgdir)
 {
+	// walkpgdir for each user virtual page
 	return 0;
 }
 
