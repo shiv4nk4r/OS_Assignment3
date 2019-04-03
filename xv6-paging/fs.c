@@ -86,14 +86,44 @@ uint
 balloc_page(uint dev)
 {
 	// if you use log_write you should use begin_op and end_op
-	return -1;
+  uint blockstore[8];
+  uint release[1000000];
+  releaseindex = 0;
+  begin_op();
+  int check = 0;
+  while (check<8)
+  {
+    blockstore[i] = balloc();
+    check+=1;
+    if(i>0){
+      if(blockstore[i] - blockstore[i-1] > 0){
+        check = 0;
+        for(int j = 0; j<check; j++){
+          release[releaseindex+j] = blockstore[j];
+          releaseindex = releaseindex+check;
+        }
+      }
+    }
+  }
+  for(int i = 0; i<releaseindex; i++){
+    bfree(ROOTDEV, release[i]);
+  }
+  end_op();
+  uint address = blockstore[0];
+	return address;
 }
 
 /* Free disk blocks allocated using balloc_page.
  */
 void
 bfree_page(int dev, uint b)
-{
+{ 
+  begin_op();
+  for (int i = 0; i < 8; ++i)
+  {
+    bfree(ROOTDEV,i+b);
+  }
+  end_op();
 }
 
 // Free a disk block.
