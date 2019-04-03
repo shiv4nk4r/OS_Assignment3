@@ -25,6 +25,7 @@ swap_page_from_pte(pte_t *pte)
 	//store blk in higher 20 bits
 	//use one bit in lower 12 bits to mark pte as swapped
 	//kfree (va)
+	
 }
 
 /* Select a victim and swap the contents to the disk.
