@@ -34,8 +34,7 @@ seginit(void)
 // Return the address of the PTE in page table pgdir
 // that corresponds to virtual address va.  If alloc!=0,
 // create any required page table pages.
-static pte_t *
-walkpgdir(pde_t *pgdir, const void *va, int alloc)
+static pte_t * walkpgdir(pde_t *pgdir, const void *va, int alloc)
 {
   pde_t *pde;
   pte_t *pgtab;
@@ -59,8 +58,7 @@ walkpgdir(pde_t *pgdir, const void *va, int alloc)
 // Create PTEs for virtual addresses starting at va that refer to
 // physical addresses starting at pa. va and size might not
 // be page-aligned.
-static int
-mappages(pde_t *pgdir, void *va, uint size, uint pa, int perm)
+static int mappages(pde_t *pgdir, void *va, uint size, uint pa, int perm)
 {
   char *a, *last;
   pte_t *pte;
@@ -236,8 +234,11 @@ allocuvm(pde_t *pgdir, uint oldsz, uint newsz)
   for(; a < newsz; a += PGSIZE){
     mem = kalloc();
     if(mem == 0){
+
 		// select_a_victim
 		// swap_page_from_pte
+      pte_t*  pte;
+      pte = select_a_victim();  
       //cprintf("allocuvm out of memory\n");
       deallocuvm(pgdir, newsz, oldsz);
       return 0;
@@ -306,10 +307,17 @@ freevm(pde_t *pgdir)
 // Select a page-table entry which is mapped
 // but not accessed. Notice that the user memory
 // is mapped between 0...KERNBASE.
-pte_t*
-select_a_victim(pde_t *pgdir)
+pte_t* select_a_victim(pde_t *pgdir)
 {
-	// walkpgdir for each user virtual page
+  pte_t* pte;
+  for(int a = 0  ; a  < KERNBASE; a += PGSIZE){
+    {
+      pte = walkpgdir(pgdir, (char*)a, 0);
+      if ( ((*pte!=0 & PTE_P) & !PTE_A)){
+        return pte;
+      }
+    }
+  // walkpgdir for each user virtual page
 	return 0;
 }
 
@@ -317,6 +325,7 @@ select_a_victim(pde_t *pgdir)
 void
 clearaccessbit(pde_t *pgdir)
 {
+
 }
 
 // return the disk block-id, if the virtual address
