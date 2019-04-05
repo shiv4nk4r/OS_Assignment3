@@ -311,7 +311,6 @@ pte_t* select_a_victim(pde_t *pgdir)
 {
   pte_t* pte;
   for(int a = 0  ; a  < KERNBASE; a += PGSIZE){
-    {
       pte = walkpgdir(pgdir, (char*)a, 0);
       if ( ((*pte!=0 & PTE_P) & !PTE_A)){
         return pte;
@@ -325,9 +324,18 @@ pte_t* select_a_victim(pde_t *pgdir)
 void
 clearaccessbit(pde_t *pgdir)
 {
-
+  pte_t* pte;
+  int count =0;
+  for(int a = 0  ; a  < KERNBASE; a += PGSIZE){
+      count ++;
+      if (count = 10){
+        pte = walkpgdir(pgdir, (char*)a, 0);
+        *pte = *pte & ~(PTE_A);
+        break;
+      }
+    }
 }
-//*pte = *pte & !PTE_A;
+//*pte = *pte & ~(PTE_A);
 // return the disk block-id, if the virtual address
 // was swapped, -1 otherwise.
 int
@@ -336,7 +344,7 @@ getswappedblk(pde_t *pgdir, uint va)
   pte_t *pte;
   pte = walkpgdir(pgdir, (char*)va, 0);
   if(*pte & PTE_SWP){
-    return pte;
+    return *pte>>12;
   }
   else{
     return -1;

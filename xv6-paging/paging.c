@@ -25,10 +25,15 @@ swap_page_from_pte(pte_t *pte)
 	//store blk in higher 20 bits
 	//use one bit in lower 12 bits to mark pte as swapped
 	//kfree (va)
-	blk = balloc_page(ROOTDEV);
-	va = pte_to_vaddr(pte);
-	write_page_to_disk(ROOTDEV, va, blk);
+	uint blk = balloc_page(ROOTDEV);
+	//va = pte_to_vaddr(pte);
+	uint va = P2V(PTE_ADDR(*pte));
+	write_page_to_disk(ROOTDEV, (char*)va, blk);
+	*pte = *pte & ~(PTE_P);
 	blk = blk<<12;
+	*pte = blk & ~(PTE_SWP);
+	kfree(V2P(va));
+
 }
 
 /* Select a victim and swap the contents to the disk.
