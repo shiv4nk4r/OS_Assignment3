@@ -99,9 +99,12 @@ void
 write_page_to_disk(uint dev, char *pg, uint blk)
 {
   struct buf *b; 
-  for(int i = 0; i<8; i++){
+  for(int i = 0; i<8; i++){;
     b = bread(dev, blk+i);
-    
+    uint p = pg+i*512;
+    memmove(b->data, p,512);
+    bwrite(b);
+    brelse(b);
   }
 }
 
