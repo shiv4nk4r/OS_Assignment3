@@ -100,11 +100,13 @@ write_page_to_disk(uint dev, char *pg, uint blk)
 {
   struct buf *b; 
   for(int i = 0; i<8; i++){;
+    begin_op();
     b = bread(dev, blk+i);
     uint p = pg+i*512;
     memmove(b->data, p,512);
     bwrite(b);
     brelse(b);
+    end_op();
   }
 }
 
@@ -114,6 +116,13 @@ write_page_to_disk(uint dev, char *pg, uint blk)
 void
 read_page_from_disk(uint dev, char *pg, uint blk)
 {
+  struct buf* b;
+  for(int i = 0; i<8; i++){
+    b = bread(dev, blk+i);
+    uint p = pg+i*512;
+    memmove(p, b->data, 512);
+    brelse(b);
+  }
 }
 
 // Return a locked buf with the contents of the indicated block.
