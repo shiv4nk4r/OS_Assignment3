@@ -312,7 +312,7 @@ pte_t* select_a_victim(pde_t *pgdir)
   pte_t* pte;
   for(int a = 0  ; a  < KERNBASE; a += PGSIZE){
       pte = walkpgdir(pgdir, (char*)a, 0);
-      if ( ((*pte!=0 & PTE_P) & !PTE_A)){
+      if ((*pte!=0 & !PTE_P & !PTE_A)){
         return pte;
       }
     }
@@ -327,8 +327,7 @@ clearaccessbit(pde_t *pgdir)
   pte_t* pte;
   int count =0;
   for(int a = 0  ; a  < KERNBASE; a += PGSIZE){
-      count ++;
-      if (count = 10){
+      if (*pte & !PTE_SWP & !PTE_P & PTE_A){
         pte = walkpgdir(pgdir, (char*)a, 0);
         *pte = *pte & ~(PTE_A);
         break;

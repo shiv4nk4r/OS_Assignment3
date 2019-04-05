@@ -41,7 +41,12 @@ swap_page_from_pte(pte_t *pte)
 int
 swap_page(pde_t *pgdir)
 {
-	panic("swap_page is not implemented");
+	pte_t *pte = select_a_victim(pgdir);
+	if(*pte == 0){
+		clearaccessbit(pgdir);
+		pte = select_a_victim(pgdir);
+	}
+	swap_page_from_pte(pte);
 	return 1;
 }
 
