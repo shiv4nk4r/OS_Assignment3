@@ -327,13 +327,21 @@ clearaccessbit(pde_t *pgdir)
 {
 
 }
-
+//*pte = *pte & !PTE_A;
 // return the disk block-id, if the virtual address
 // was swapped, -1 otherwise.
 int
 getswappedblk(pde_t *pgdir, uint va)
 {
-  return -1;
+  pte_t *pte;
+  pte = walkpgdir(pgdir, (char*)va, 0);
+  if(*pte & PTE_SWP){
+    return pte;
+  }
+  else{
+    return -1;
+  }
+
 }
 
 // Clear PTE_U on a page. Used to create an inaccessible
