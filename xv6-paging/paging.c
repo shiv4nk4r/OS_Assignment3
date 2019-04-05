@@ -44,9 +44,9 @@ swap_page(pde_t *pgdir)
 	pte_t *pte = select_a_victim(pgdir);
 	if(*pte == 0){
 		clearaccessbit(pgdir);
-		pte = select_a_victim(pgdir);
+		*pte = select_a_victim(pgdir);
 	}
-	swap_page_from_pte(pte);
+	swap_page_from_pte(*pte);
 	return 1;
 }
 
