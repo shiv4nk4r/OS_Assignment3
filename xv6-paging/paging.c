@@ -10,6 +10,29 @@
 #include "paging.h"
 #include "fs.h"
 
+
+static pte_t * walkpgdir(pde_t *pgdir, const void *va, int alloc)
+{
+  pde_t *pde;
+  pte_t *pgtab;
+
+  pde = &pgdir[PDX(va)];
+  if(*pde & PTE_P){
+    pgtab = (pte_t*)P2V(PTE_ADDR(*pde));
+  } else {
+    if(!alloc || (pgtab = (pte_t*)kalloc()) == 0)
+      return 0;
+    // Make sure all those PTE_P bits are zero.
+    memset(pgtab, 0, PGSIZE);
+    // The permissions here are overly generous, but they can
+    // be further restricted by the permissions in the page table
+    // entries, if necessary.
+    *pde = V2P(pgtab) | PTE_P | PTE_W | PTE_U;
+  }
+  return &pgtab[PTX(va)];
+}
+
+
 /* Allocate eight consecutive disk blocks.
  * Save the content of the physical page in the pte
  * to the disk blocks and save the block-id into the
@@ -82,12 +105,12 @@ void map_address(pde_t *pgdir, uint addr)
 			swap_page(pgdir);
 			mem = kalloc();
 			memmove(mem, b, PGSIZE);
-			*pte = V2P(kva) | PTE_P | PTE_W | PTE_U;
+			*pte = V2P(mem) | PTE_P | PTE_W | PTE_U;
 			bfree_page(ROOTDEV, blk);
 		}
 		else{
 			memmove(mem, b, PGSIZE);
-			*pte = V2P(kva) | PTE_P | PTE_W | PTE_U;
+			*pte = V2P(mem) | PTE_P | PTE_W | PTE_U;
 			bfree_page(ROOTDEV, blk);
 		}
 	}
@@ -97,14 +120,14 @@ void map_address(pde_t *pgdir, uint addr)
 			swap_page(pgdir);
 			mem = kalloc();
 			memset(mem, 0, PGSIZE);
-			*pte = V2P(kva) | PTE_P | PTE_W | PTE_U;
+			*pte = V2P(mem) | PTE_P | PTE_W | PTE_U;
 		}
 		else{
 			memset(mem, 0, PGSIZE);
-			*pte = V2P(kva) | PTE_P | PTE_W | PTE_U;
+			*pte = V2P(mem) | PTE_P | PTE_W | PTE_U;
 		}
 	}
-	panic("map_address is not implemented");
+	//panic("map_address is not implemented");
 }
 
 /* page fault handler */
