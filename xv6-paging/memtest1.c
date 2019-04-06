@@ -12,7 +12,7 @@ char buf[8192];
 char name[3];
 char *echoargv[] = { "echo", "ALL", "TESTS", "PASSED", 0 };
 int stdout = 1;
-#define TOTAL_MEMORY (2 << 20) + (1 << 18) + (1 << 16)
+#define TOTAL_MEMORY (2 << 20) + (1 << 18) + (1 << 17)
 
 void
 mem(void)
@@ -28,8 +28,9 @@ mem(void)
 	if (m1 == 0)
 		goto failed;
 	start = m1;
-	//printf(1, "memtest2\n");
+
 	while (cur < TOTAL_MEMORY) {
+		printf(1, "%d\n", count);
 		m2 = malloc(4096);
 		if (m2 == 0)
 			goto failed;
@@ -37,23 +38,26 @@ mem(void)
 		((int*)m1)[2] = count++;
 		m1 = m2;
 		cur += 4096;
-		//printf(1, "count%d\n",count);
+		printf(1, "%d\n", count);
 	}
-	//printf(1, "memtest3\n");
 	((int*)m1)[2] = count;
 	total_count = count;
-
+	//printf(1, "%d\n", count);
+	//
+	printf(1,"finished first loop");
 	count = 0;
 	m1 = start;
-
+	printf(1, "%d\n", total_count);
 	while (count != total_count) {
+		printf(1, "%d\n", count);
+		printf(1,"check1\n");
 		if (((int*)m1)[2] != count)
 			goto failed;
 		m1 = *(char**)m1;
 		count++;
 	}
 
-	printf(1, "mem Success %d\n", bstat());
+	printf(1, "mem ok %d\n", bstat());
 	exit();
 failed:
 	printf(1, "test failed!\n");

@@ -325,13 +325,24 @@ void
 clearaccessbit(pde_t *pgdir)
 {
   pte_t* pte;
-  for(int a = 0  ; a  < KERNBASE; a += PGSIZE){
-      if ((*pte & !PTE_SWP) & (*pte & PTE_A)){
-        pte = walkpgdir(pgdir, (char*)a, 0);
+  int f=0;
+  for(int i = 0  ; i  < KERNBASE; i += PGSIZE){
+      i =(i+30000)%KERNBASE;
+      pte = walkpgdir(pgdir, (char*)i, 0);
+      if ((*pte & PTE_P)){
         *pte = *pte & ~(PTE_A);
-        break;
+        f=1;
+        return;
       }
     }
+  if (f==0)
+  {
+    //cprintf("fuuu");
+    pte = walkpgdir(pgdir, (char*)10, 0);
+    *pte = *pte & ~(PTE_A);
+    return;
+  }
+  return;
 }
 //*pte = *pte & ~(PTE_A);
 // return the disk block-id, if the virtual address
@@ -340,12 +351,15 @@ int
 getswappedblk(pde_t *pgdir, uint va)
 {
   pte_t *pte;
+  int x = -1;
   pte = walkpgdir(pgdir, (char*)va, 0);
   if(*pte & PTE_SWP){
-    return *pte>>12;
+    //cprintf("%d\nhuu", x);
+    int x =(*pte)>>12; 
+    return x;
   }
   else{
-    return -1;
+    return x;
   }
 
 }

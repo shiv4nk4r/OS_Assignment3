@@ -99,12 +99,18 @@ void
 write_page_to_disk(uint dev, char *pg, uint blk)
 {
   struct buf *b; 
-  for(int i = 0; i<8; i++){;
+  if(pg == 0){
+  	return;
+  }
+  for(int i = 0; i<8; i++){
     begin_op();
+    //cprintf("reading\n");
     b = bread(dev, blk+i);
-    //uint p = 
+    //cprintf("moving\n");
     memmove(b->data, pg+i*512,512);
+    //cprintf("writing\n");
     bwrite(b);
+    //cprintf("releasing\n"); 
     brelse(b);
     end_op();
   }

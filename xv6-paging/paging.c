@@ -10,7 +10,6 @@
 #include "paging.h"
 #include "fs.h"
 
-
 static pte_t * walkpgdir(pde_t *pgdir, const void *va, int alloc)
 {
   pde_t *pde;
@@ -69,16 +68,23 @@ swap_page_from_pte(pte_t *pte)
 	//store blk in higher 20 bits
 	//use one bit in lower 12 bits to mark pte as swapped
 	//kfree (va)
+	//cprintf("swap\n");
 	uint blk = balloc_page(ROOTDEV);
+	//numallocblocks+=1;
 	//va = pte_to_vaddr(pte);
+	//cprintf("done\n");
 	uint pa = PTE_ADDR(*pte);
 	uint* va = P2V(pa);
+	//cprintf("write_page_to_disk\n");
 	write_page_to_disk(ROOTDEV, (char*)va, blk);
+	//cprintf("written\n");
 	*pte = *pte & ~(PTE_P);
+	//cprintf("written2\n");
 	blk = blk<<12;
-	*pte = blk & ~(PTE_SWP);
-	kfree((char*)pa);
-
+	*pte = blk | (PTE_SWP);
+	//cprintf("written3\n");
+	kfree((char*)va);
+	//cprintf("written4\n");
 }
 
 /* Select a victim and swap the contents to the disk.
@@ -86,9 +92,12 @@ swap_page_from_pte(pte_t *pte)
 int
 swap_page(pde_t *pgdir)
 {
+	//cprintf("swap2");
 	pte_t *pte = select_a_victim(pgdir);
 	if(pte == 0){
+		//cprintf("clear\n");
 		clearaccessbit(pgdir);
+		//cprintf("select_a_victim\n");
 		pte = select_a_victim(pgdir);
 	}
 	swap_page_from_pte(pte);
@@ -113,49 +122,33 @@ void map_address(pde_t *pgdir, uint addr)
 	//swap page out
 	//int blk = getswappedblk(pgdir,addr);
 	//int newsize = allocuvm(pgdir,)
-	addr=PGROUNDUP(addr);
-	pte_t* pte = walkpgdir(pgdir, (char*)addr, 9);
 	char* mem;
-	/*if((*pte & PTE_SWP)){
-		int blk = getswappedblk(pgdir, addr);
-		char b[PGSIZE];
-		if(blk!=-1){
-			read_page_from_disk(ROOTDEV,b,blk);
-		}
-		mem = kalloc(); 
-		if(mem == 0){
-			swap_page(pgdir);
-			mem = kalloc();
-			memmove(mem, b, PGSIZE);
-			*pte = V2P(mem) | PTE_P | PTE_W | PTE_U;
-			bfree_page(ROOTDEV, blk);
-				panic("map_address is not implemented4");
-		}
-		else{
-			memmove(mem, b, PGSIZE);
-			*pte = V2P(mem) | PTE_P | PTE_W | PTE_U;
-			bfree_page(ROOTDEV, blk);
-				panic("map_address is not implemente3d");
-		}
+	mem = kalloc();
+	if(mem == 0){
+		//cprintf("\n%s\n","hello");
+		swap_page(pgdir);
+		mem = kalloc();
+		memset(mem, 0, PGSIZE);
+		//mappages(pgdir, (char*)addr, PGSIZE, V2P(mem), PTE_W|PTE_U);
 	}
-	else{
-	*/	mem = kalloc();
-		if(mem == 0){
-			cprintf("%s\n","hello" );
-			swap_page(pgdir);
-			mem = kalloc();
-			memset(mem, 0, PGSIZE);
-			*pte = V2P(mem) | PTE_P | PTE_W | PTE_U;
-				panic("map_address is not implement2ed1");
-		}
-		else{
-			memset(mem, 0, PGSIZE);
-				
-			//*pte = V2P(mem) | PTE_P | PTE_W | PTE_U;
-			mappages(pgdir, (char*)addr, PGSIZE, V2P(mem), PTE_W|PTE_U);
-			//cprintf("map_address is not implemente2d");
-		}
-	//}
+	//cprintf("written5\n");
+	int blk = getswappedblk(pgdir, addr);
+	//cprintf("%d\nhuup", blk);
+	char pg[4096] = "";
+	//cprintf("written6\n");
+	if(blk!=-1){
+		read_page_from_disk(ROOTDEV,pg,blk);
+		//cprintf("written7\n");
+		memmove(mem, pg, PGSIZE);
+		//cprintf("written8\n");
+		//cprintf("%d\nhuu", blk);
+		bfree_page(ROOTDEV, blk);
+		//numallocblocks-=1;
+		//cprintf("written9\n");
+	}
+
+	mappages(pgdir, (char*)addr, PGSIZE, V2P(mem), PTE_W|PTE_U);
+	//cprintf("written10\n");s
 
 }
 
@@ -165,7 +158,7 @@ handle_pgfault()
 {
 	unsigned addr;
 	struct proc *curproc = myproc();
-
+	//cprintf("pgfault\n");
 	asm volatile ("movl %%cr2, %0 \n\t" : "=r" (addr));
 	addr &= ~0xfff;
 	map_address(curproc->pgdir, addr);

@@ -39,7 +39,7 @@ readsb(int dev, struct superblock *sb)
   memmove(sb, bp->data, sizeof(*sb));
   brelse(bp);
 }
-
+int numallocblock = 0;
 // Zero a block.
 static void
 bzero(int dev, int bno)
@@ -86,46 +86,27 @@ balloc(uint dev)
 uint
 balloc_page(uint dev)
 {
-	// if you use log_write you should use begin_op and end_op
-  uint blockstore[8];
-  uint release[1000000];
-  uint releaseindex = 0;
-  begin_op();
-  int check = 0;
-  while (check<8)
+  numallocblock+=1;
+  int i =0;; 
+  uint block[8];
+  int num=0;
+  while(num<8)
   {
-    blockstore[check] = balloc(dev);
-    check+=1;
-    if(check>0){
-      if(blockstore[check] - blockstore[check-1] > 1){
-        check = 0;
-        for(int j = 0; j<check; j++){
-          release[releaseindex+j] = blockstore[j];
-          releaseindex = releaseindex+check;
-        }
-      }
+    begin_op();
+    block[i] = balloc(dev);
+    end_op();
+    if(i>0 && ((block[i]-block[i-1])>1))
+    { 
+      i = 0;
+      num = 0;
     }
+    num++;
+    i++;
   }
-  for(int i = 0; i<releaseindex; i++){
-    bfree(dev, release[i]);
-  }
-  end_op();
-  uint address = blockstore[0];
-	return address;
+  return block[0];        
 }
-
 /* Free disk blocks allocated using balloc_page.
  */
-void
-bfree_page(int dev, uint b)
-{ 
-  begin_op();
-  for (int i = 0; i < 8; ++i)
-  {
-    bfree(ROOTDEV,i+b);
-  }
-  end_op();
-}
 
 // Free a disk block.
 static void
@@ -145,6 +126,19 @@ bfree(int dev, uint b)
   brelse(bp);
 }
 
+void
+bfree_page(int dev, uint b)
+{ 
+  numallocblock-=1;
+  for (int i = 0; i < 8; i++)
+  {
+    cprintf("\nhare ");
+    begin_op();
+    bfree(ROOTDEV,b+i);
+    end_op();
+    cprintf(" krishna\n");
+  }
+}
 // Inodes.
 //
 // An inode describes a single unnamed file.
@@ -719,3 +713,5 @@ nameiparent(char *path, char *name)
 {
   return namex(path, 1, name);
 }
+
+

@@ -59,4 +59,5 @@ struct dirent {
 uint balloc_page(uint dev);
 void bfree_page(int dev, uint b);
 void write_page_to_disk(uint dev, char *pg, uint blk);
+void checking();
 void read_page_from_disk(uint dev, char *pg, uint blk);
