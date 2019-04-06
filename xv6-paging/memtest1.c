@@ -12,7 +12,7 @@ char buf[8192];
 char name[3];
 char *echoargv[] = { "echo", "ALL", "TESTS", "PASSED", 0 };
 int stdout = 1;
-#define TOTAL_MEMORY (2 << 20) + (1 << 18) + (1 << 17)
+#define TOTAL_MEMORY (2 << 20) + (1 << 18) + (1 << 16)
 
 void
 mem(void)
@@ -28,7 +28,7 @@ mem(void)
 	if (m1 == 0)
 		goto failed;
 	start = m1;
-
+	//printf(1, "memtest2\n");
 	while (cur < TOTAL_MEMORY) {
 		m2 = malloc(4096);
 		if (m2 == 0)
@@ -37,7 +37,9 @@ mem(void)
 		((int*)m1)[2] = count++;
 		m1 = m2;
 		cur += 4096;
+		//printf("The integer is %p\n", (void *)&cur);
 	}
+	printf(1, "memtest3\n");
 	((int*)m1)[2] = count;
 	total_count = count;
 

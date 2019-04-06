@@ -107,11 +107,13 @@ void map_address(pde_t *pgdir, uint addr)
 			memmove(mem, b, PGSIZE);
 			*pte = V2P(mem) | PTE_P | PTE_W | PTE_U;
 			bfree_page(ROOTDEV, blk);
+				panic("map_address is not implemented4");
 		}
 		else{
 			memmove(mem, b, PGSIZE);
 			*pte = V2P(mem) | PTE_P | PTE_W | PTE_U;
 			bfree_page(ROOTDEV, blk);
+				panic("map_address is not implemente3d");
 		}
 	}
 	else{
@@ -121,13 +123,16 @@ void map_address(pde_t *pgdir, uint addr)
 			mem = kalloc();
 			memset(mem, 0, PGSIZE);
 			*pte = V2P(mem) | PTE_P | PTE_W | PTE_U;
+				panic("map_address is not implement2ed1");
 		}
 		else{
 			memset(mem, 0, PGSIZE);
+				
 			*pte = V2P(mem) | PTE_P | PTE_W | PTE_U;
+			//cprintf("map_address is not implemente2d");
 		}
 	}
-	//panic("map_address is not implemented");
+
 }
 
 /* page fault handler */
