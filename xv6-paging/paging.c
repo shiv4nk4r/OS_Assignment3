@@ -63,9 +63,47 @@ void map_address(pde_t *pgdir, uint addr)
 	// switchuvm
 	// if blk was not -1, read_page_from_disk
 	// bfree_page
+	//check if your va is corresponding to a pte which is already
+	//if already swapped, allocate pm to it with kalloc
+	//if successful positive, or 0
+	//swap page out
 	//int blk = getswappedblk(pgdir,addr);
-	
 	//int newsize = allocuvm(pgdir,)
+	pte_t* pte = walkpgdir(pgdir, (char*)addr, 9);
+	char* mem;
+	if((*pte & PTE_SWP)){
+		int blk = getswappedblk(pgdir, addr);
+		char b[PGSIZE];
+		if(blk!=-1){
+			read_page_from_disk(ROOTDEV,b,blk);
+		}
+		mem = kalloc(); 
+		if(mem == 0){
+			swap_page(pgdir);
+			mem = kalloc();
+			memmove(mem, b, PGSIZE);
+			*pte = V2P(kva) | PTE_P | PTE_W | PTE_U;
+			bfree_page(ROOTDEV, blk);
+		}
+		else{
+			memmove(mem, b, PGSIZE);
+			*pte = V2P(kva) | PTE_P | PTE_W | PTE_U;
+			bfree_page(ROOTDEV, blk);
+		}
+	}
+	else{
+		mem = kalloc();
+		if(mem == 0){
+			swap_page(pgdir);
+			mem = kalloc();
+			memset(mem, 0, PGSIZE);
+			*pte = V2P(kva) | PTE_P | PTE_W | PTE_U;
+		}
+		else{
+			memset(mem, 0, PGSIZE);
+			*pte = V2P(kva) | PTE_P | PTE_W | PTE_U;
+		}
+	}
 	panic("map_address is not implemented");
 }
 
