@@ -97,7 +97,7 @@ balloc_page(uint dev)
     blockstore[check] = balloc(dev);
     check+=1;
     if(check>0){
-      if(blockstore[check] - blockstore[check-1] > 0){
+      if(blockstore[check] - blockstore[check-1] > 1){
         check = 0;
         for(int j = 0; j<check; j++){
           release[releaseindex+j] = blockstore[j];

@@ -37,9 +37,9 @@ mem(void)
 		((int*)m1)[2] = count++;
 		m1 = m2;
 		cur += 4096;
-		//printf("The integer is %p\n", (void *)&cur);
+		//printf(1, "count%d\n",count);
 	}
-	printf(1, "memtest3\n");
+	//printf(1, "memtest3\n");
 	((int*)m1)[2] = count;
 	total_count = count;
 
@@ -53,7 +53,7 @@ mem(void)
 		count++;
 	}
 
-	printf(1, "mem ok %d\n", bstat());
+	printf(1, "mem Success %d\n", bstat());
 	exit();
 failed:
 	printf(1, "test failed!\n");

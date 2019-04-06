@@ -32,6 +32,27 @@ static pte_t * walkpgdir(pde_t *pgdir, const void *va, int alloc)
   return &pgtab[PTX(va)];
 }
 
+static int mappages(pde_t *pgdir, void *va, uint size, uint pa, int perm)
+{
+  char *a, *last;
+  pte_t *pte;
+
+  a = (char*)PGROUNDDOWN((uint)va);
+  last = (char*)PGROUNDDOWN(((uint)va) + size - 1);
+  for(;;){
+    if((pte = walkpgdir(pgdir, a, 1)) == 0)
+      return -1;
+    if(*pte & PTE_P)
+      panic("remap");
+    *pte = pa | perm | PTE_P;
+    if(a == last)
+      break;
+    a += PGSIZE;
+    pa += PGSIZE;
+  }
+  return 0;
+}
+
 
 /* Allocate eight consecutive disk blocks.
  * Save the content of the physical page in the pte
@@ -92,9 +113,10 @@ void map_address(pde_t *pgdir, uint addr)
 	//swap page out
 	//int blk = getswappedblk(pgdir,addr);
 	//int newsize = allocuvm(pgdir,)
+	addr=PGROUNDUP(addr);
 	pte_t* pte = walkpgdir(pgdir, (char*)addr, 9);
 	char* mem;
-	if((*pte & PTE_SWP)){
+	/*if((*pte & PTE_SWP)){
 		int blk = getswappedblk(pgdir, addr);
 		char b[PGSIZE];
 		if(blk!=-1){
@@ -117,8 +139,9 @@ void map_address(pde_t *pgdir, uint addr)
 		}
 	}
 	else{
-		mem = kalloc();
+	*/	mem = kalloc();
 		if(mem == 0){
+			cprintf("%s\n","hello" );
 			swap_page(pgdir);
 			mem = kalloc();
 			memset(mem, 0, PGSIZE);
@@ -128,10 +151,11 @@ void map_address(pde_t *pgdir, uint addr)
 		else{
 			memset(mem, 0, PGSIZE);
 				
-			*pte = V2P(mem) | PTE_P | PTE_W | PTE_U;
+			//*pte = V2P(mem) | PTE_P | PTE_W | PTE_U;
+			mappages(pgdir, (char*)addr, PGSIZE, V2P(mem), PTE_W|PTE_U);
 			//cprintf("map_address is not implemente2d");
 		}
-	}
+	//}
 
 }
 
