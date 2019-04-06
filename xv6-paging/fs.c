@@ -23,6 +23,7 @@
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
 static void itrunc(struct inode*);
+static void bfree(int dev, uint b);
 // there should be one superblock per disk device, but we run with
 // only one device
 struct superblock sb;
@@ -88,15 +89,15 @@ balloc_page(uint dev)
 	// if you use log_write you should use begin_op and end_op
   uint blockstore[8];
   uint release[1000000];
-  releaseindex = 0;
+  uint releaseindex = 0;
   begin_op();
   int check = 0;
   while (check<8)
   {
-    blockstore[i] = balloc();
+    blockstore[check] = balloc(dev);
     check+=1;
-    if(i>0){
-      if(blockstore[i] - blockstore[i-1] > 0){
+    if(check>0){
+      if(blockstore[check] - blockstore[check-1] > 0){
         check = 0;
         for(int j = 0; j<check; j++){
           release[releaseindex+j] = blockstore[j];
@@ -106,7 +107,7 @@ balloc_page(uint dev)
     }
   }
   for(int i = 0; i<releaseindex; i++){
-    bfree(ROOTDEV, release[i]);
+    bfree(dev, release[i]);
   }
   end_op();
   uint address = blockstore[0];

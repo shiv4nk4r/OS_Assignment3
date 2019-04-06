@@ -27,12 +27,13 @@ swap_page_from_pte(pte_t *pte)
 	//kfree (va)
 	uint blk = balloc_page(ROOTDEV);
 	//va = pte_to_vaddr(pte);
-	uint va = P2V(PTE_ADDR(*pte));
+	uint pa = PTE_ADDR(*pte);
+	uint* va = P2V(pa);
 	write_page_to_disk(ROOTDEV, (char*)va, blk);
 	*pte = *pte & ~(PTE_P);
 	blk = blk<<12;
 	*pte = blk & ~(PTE_SWP);
-	kfree(V2P(va));
+	kfree((char*)pa);
 
 }
 
@@ -42,11 +43,11 @@ int
 swap_page(pde_t *pgdir)
 {
 	pte_t *pte = select_a_victim(pgdir);
-	if(*pte == 0){
+	if(pte == 0){
 		clearaccessbit(pgdir);
-		*pte = select_a_victim(pgdir);
+		pte = select_a_victim(pgdir);
 	}
-	swap_page_from_pte(*pte);
+	swap_page_from_pte(pte);
 	return 1;
 }
 
@@ -55,14 +56,16 @@ swap_page(pde_t *pgdir)
  * restore the content of the page from the swapped
  * block and free the swapped block.
  */
-void
-map_address(pde_t *pgdir, uint addr)
+void map_address(pde_t *pgdir, uint addr)
 {
 	// blk = getswappedblk
 	// allocuvm
 	// switchuvm
 	// if blk was not -1, read_page_from_disk
 	// bfree_page
+	//int blk = getswappedblk(pgdir,addr);
+	
+	//int newsize = allocuvm(pgdir,)
 	panic("map_address is not implemented");
 }
 

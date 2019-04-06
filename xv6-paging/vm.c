@@ -237,8 +237,8 @@ allocuvm(pde_t *pgdir, uint oldsz, uint newsz)
 
 		// select_a_victim
 		// swap_page_from_pte
-      pte_t*  pte;
-      pte = select_a_victim();  
+      //pte_t*  pte;
+      //pte = select_a_victim(pgdir);  
       //cprintf("allocuvm out of memory\n");
       deallocuvm(pgdir, newsz, oldsz);
       return 0;
@@ -312,7 +312,7 @@ pte_t* select_a_victim(pde_t *pgdir)
   pte_t* pte;
   for(int a = 0  ; a  < KERNBASE; a += PGSIZE){
       pte = walkpgdir(pgdir, (char*)a, 0);
-      if ((*pte!=0 & !PTE_P & !PTE_A)){
+      if ((!*pte & !PTE_P) & (!*pte & !PTE_A)){
         return pte;
       }
     }
@@ -325,7 +325,6 @@ void
 clearaccessbit(pde_t *pgdir)
 {
   pte_t* pte;
-  int count =0;
   for(int a = 0  ; a  < KERNBASE; a += PGSIZE){
       if (*pte & !PTE_SWP & !PTE_P & PTE_A){
         pte = walkpgdir(pgdir, (char*)a, 0);
